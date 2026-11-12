@@ -1,0 +1,38 @@
+# magpie 的 systemd 单元模板（方式一：本地安装）。
+#
+# 安装（在仓库根目录执行）：
+#   sed "s#<your-dir>#$PWD#g" service/magpie.service | sudo tee /etc/systemd/system/magpie.service >/dev/null
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now magpie
+#
+# 默认以 root 运行（项目在 /root 下时必须如此）。要换成普通用户，取消下面 User/Group 的注释，
+# 并确保该用户对 <your-dir> 有读写权限。
+
+[Unit]
+Description=magpie gateway and web UI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=<your-dir>
+
+# .env 里的键值直接注入进程环境；systemd 会处理其中的双引号。
+EnvironmentFile=<your-dir>/.env
+# 这三项不进 .env：监听地址与配置/缓存位置固定在本项目内。
+Environment=MAGPIE_ADDR=127.0.0.1:3425
+Environment=XDG_CONFIG_HOME=<your-dir>/config
+Environment=XDG_CACHE_HOME=<your-dir>/cache
+
+ExecStart=<your-dir>/bin/magpie web --addr 127.0.0.1:3430 --no-open
+
+# 异常退出自动拉起；停止时给 10 秒收尾。
+Restart=always
+RestartSec=3
+TimeoutStopSec=10
+
+# User=magpie
+# Group=magpie
+
+[Install]
+WantedBy=multi-user.target

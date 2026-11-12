@@ -1,0 +1,429 @@
+@import 'tailwindcss';
+
+@layer base {
+  :root {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    color: #070b20;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-width: 320px;
+    background: #fff;
+  }
+}
+
+/* --u is one pixel of the 1536 × 1024 reference, scaled so the whole artboard fits the viewport. */
+.login-page {
+  --u: min(calc(100vw / 1536), calc(100vh / 1024));
+  --oy: max(0px, calc((100vh - var(--u) * 1024) / 2));
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #fff;
+}
+
+.place {
+  position: absolute;
+  left: calc(var(--u) * var(--x));
+  top: calc(var(--oy) + var(--u) * var(--y));
+}
+
+/* Brand panel: one continuous illustration; extra height stretches its top row, so there is no seam. */
+.brand-panel {
+  position: relative;
+  flex: none;
+  width: calc(var(--u) * 768);
+  overflow: hidden;
+  color: #fff;
+  background: #182d68 url('/magpie-top.png') top left / 100% 100% no-repeat;
+}
+
+.brand-art {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  width: calc(var(--u) * 50);
+  height: calc(var(--u) * 50);
+  filter: drop-shadow(0 calc(var(--u) * 4) calc(var(--u) * 10) rgba(4, 14, 48, 0.35));
+}
+
+.brand-name {
+  margin-left: calc(var(--u) * 14);
+  font-size: calc(var(--u) * 40);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: calc(var(--u) * 44);
+  line-height: calc(var(--u) * 52);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.brand-title em {
+  font-style: normal;
+  color: #b8e5ff;
+  background: linear-gradient(90deg, #aedcff, #c6f0ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-intro {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: calc(var(--u) * 21.5);
+  line-height: calc(var(--u) * 31);
+  white-space: nowrap;
+}
+
+/* Latin copy runs wider than the Chinese reference, so English is set slightly smaller to keep the line lengths. */
+.brand-title:where(:lang(en)) {
+  font-size: calc(var(--u) * 40);
+  letter-spacing: -0.01em;
+}
+
+.brand-intro:where(:lang(en)) {
+  font-size: calc(var(--u) * 19);
+}
+
+.feature-icon {
+  width: calc(var(--u) * var(--w));
+  height: calc(var(--u) * var(--h));
+}
+
+.feature-label {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: calc(var(--u) * 15.8);
+  line-height: calc(var(--u) * 22);
+  white-space: nowrap;
+}
+
+.brand-foot {
+  position: absolute;
+  left: calc(var(--u) * 100);
+  bottom: calc(var(--u) * 65.7);
+  margin: 0;
+  color: #d6e3f5;
+  font-size: calc(var(--u) * 15);
+  line-height: calc(var(--u) * 20);
+  white-space: nowrap;
+}
+
+.brand-foot span {
+  margin: 0 calc(var(--u) * 14.3);
+}
+
+/* Form panel */
+.form-panel {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+}
+
+/* Language switch: on the brand lockup's centerline, flush with the form's right boundary. */
+.lang-switch {
+  position: absolute;
+  top: calc(var(--oy) + var(--u) * 79.5);
+  right: calc(50% - var(--u) * 288.5);
+  display: flex;
+  padding: calc(var(--u) * 3);
+  border: 1px solid #e2e6f0;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.lang-switch button {
+  min-width: calc(var(--u) * 52);
+  height: calc(var(--u) * 30);
+  padding: 0 calc(var(--u) * 12);
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: #50567c;
+  font-size: calc(var(--u) * 14);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.lang-switch button:hover {
+  color: #070b20;
+}
+
+.lang-switch button[aria-pressed='true'] {
+  background: #edf1ff;
+  color: #2453e0;
+}
+
+.lang-switch button:focus-visible {
+  outline: 2px solid #3164fd;
+  outline-offset: 2px;
+}
+
+.login-form {
+  position: absolute;
+  top: calc(var(--oy) + var(--u) * 280);
+  left: 50%;
+  width: calc(var(--u) * 577);
+  transform: translateX(-50%);
+}
+
+.form-title {
+  margin: 0;
+  color: #070b20;
+  font-size: calc(var(--u) * 40);
+  line-height: calc(var(--u) * 48);
+  font-weight: 700;
+}
+
+.form-subtitle {
+  margin: calc(var(--u) * 13.5) 0 0;
+  color: #50567c;
+  font-size: calc(var(--u) * 21);
+  line-height: calc(var(--u) * 30);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 33);
+  margin-top: calc(var(--u) * 48.5);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  height: calc(var(--u) * 59);
+  padding: 0 calc(var(--u) * 15) 0 calc(var(--u) * 22);
+  border: 1px solid #e2e6f0;
+  border-radius: calc(var(--u) * 10);
+  background: #fff;
+  cursor: text;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field:focus-within {
+  border-color: #9db4ff;
+  box-shadow: 0 0 0 calc(var(--u) * 3) rgba(49, 100, 253, 0.1);
+}
+
+.field-icon,
+.visibility {
+  display: flex;
+  flex: none;
+  width: calc(var(--u) * 24);
+  height: calc(var(--u) * 24);
+  color: #787f9d;
+}
+
+.field-icon svg,
+.visibility svg {
+  width: 100%;
+  height: 100%;
+}
+
+.field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin-left: calc(var(--u) * 28.5);
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #0f1430;
+  font-size: calc(var(--u) * 16.5);
+}
+
+.field input::placeholder {
+  color: #7e86a2;
+  opacity: 1;
+}
+
+.visibility {
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.visibility:hover {
+  color: #50567c;
+}
+
+.visibility:focus-visible {
+  outline: 2px solid #3164fd;
+  outline-offset: 2px;
+}
+
+.login-button {
+  display: block;
+  width: 100%;
+  height: calc(var(--u) * 58);
+  margin-top: calc(var(--u) * 40);
+  border: 0;
+  border-radius: calc(var(--u) * 10);
+  background: #3164fd;
+  box-shadow: 0 calc(var(--u) * 3) calc(var(--u) * 8) rgba(49, 100, 253, 0.1);
+  color: #fff;
+  font-size: calc(var(--u) * 18);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-button:hover {
+  background: #2a5cf2;
+}
+
+.login-button:active {
+  background: #2453e0;
+}
+
+.login-button:focus-visible {
+  outline: 3px solid rgba(49, 100, 253, 0.35);
+  outline-offset: 3px;
+}
+
+/* Portrait and phone screens: stack the brand panel above the form. */
+@media (max-width: 760px), (max-aspect-ratio: 1/1) {
+  .login-page {
+    --u: 1px;
+    --oy: 0px;
+    position: relative;
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .place {
+    position: relative;
+    left: 0;
+    top: 0;
+  }
+
+  .brand-panel {
+    width: 100%;
+    padding: 36px 24px calc(100vw * 0.76 + 28px);
+  }
+
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .brand-name {
+    margin-left: 10px;
+    font-size: 28px;
+  }
+
+  .brand-title {
+    margin-top: 40px;
+    font-size: 30px;
+    line-height: 1.3;
+    white-space: normal;
+  }
+
+  .brand-intro {
+    margin-top: 12px;
+    font-size: 16px;
+    line-height: 1.6;
+    white-space: normal;
+  }
+
+  .features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-top: 20px;
+  }
+
+  .features li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .feature-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  .feature-label {
+    font-size: 14px;
+  }
+
+  .brand-foot {
+    bottom: 20px;
+    left: 24px;
+    font-size: 12px;
+  }
+
+  .brand-foot span {
+    margin: 0 10px;
+  }
+
+  .form-panel {
+    --u: 0.85px;
+    /* Static, so the language switch anchors to the page and sits in the brand header. */
+    position: static;
+    padding: 48px 24px 64px;
+  }
+
+  .login-form {
+    position: static;
+    width: auto;
+    max-width: 490px;
+    margin: 0 auto;
+    transform: none;
+  }
+
+  .lang-switch {
+    --u: 1px;
+    top: 37px;
+    right: 24px;
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .lang-switch button {
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .lang-switch button:hover {
+    color: #fff;
+  }
+
+  .lang-switch button[aria-pressed='true'] {
+    background: #fff;
+    color: #182d68;
+  }
+
+  .lang-switch button:focus-visible {
+    outline-color: #b8e5ff;
+  }
+}

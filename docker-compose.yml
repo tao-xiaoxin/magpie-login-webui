@@ -1,0 +1,101 @@
+# magpie-login-webui：官方 magpie 网关 + 原 webui 打包出的静态登录页
+#
+# 运行时只有两个容器，没有 Node 进程、没有应用服务器、没有数据库。
+# 登录页是 ./dist（原 TypeScript/React 项目 npm run build 的产物），
+# 认证、会话、限流、密钥注入全部由 Nginx 完成。
+#
+# 链路：
+#   浏览器 ──> nginx(80)
+#                 ├── /login                      dist/index.html，静态文件
+#                 ├── /api/v1/auth/csrf           Nginx 返回协议所需的 csrfToken
+#                 ├── /api/v1/auth/sessions       Nginx 校验凭据，下发 HttpOnly 会话 Cookie
+#                 ├── /                          auth_request 校验 Cookie，注入 Web key ──> magpie:3430
+#                 └── /v1、/v1beta                独立 Bearer key 门禁 ──────────────────> magpie:3425
+#
+# 快速开始（在本目录执行）：
+#   cp .env.example .env && chmod 600 .env   # 按提示填入随机值
+#   docker compose up -d
+#   打开 http://localhost:8080/login
+#
+# 也可以本地安装：见 README.md 的「方式一」。
+
+name: magpie-login-webui
+
+services:
+  magpie:
+    image: ghcr.io/yetone/magpie:${MAGPIE_IMAGE_TAG:-0.1.3866}
+    container_name: magpie
+    restart: unless-stopped
+    networks: [front]
+    environment:
+      # bridge 网络下必须监听 0.0.0.0，nginx 才能通过服务名访问。
+      MAGPIE_ADDR: "0.0.0.0:3425"
+      # 对外链接；不写就按 HTTP_PORT 推 http://localhost:<port>。
+      MAGPIE_PUBLIC_URL: "${MAGPIE_LOGIN_ORIGIN:-http://localhost:${HTTP_PORT:-8080}}"
+      # 管理页密钥；nginx 用同一个值注入 Cookie，绝不发给浏览器。
+      MAGPIE_WEB_KEY: "${MAGPIE_WEB_KEY:?请在 .env 设置 MAGPIE_WEB_KEY}"
+      MAGPIE_TRUST_PROXY: "1"
+      DO_NOT_TRACK: "1"
+    volumes:
+      # 数据挂载：providers、keys、订阅登录态、plugins、用量统计都在 /config。
+      # named volume 会继承镜像内 uid 65532 的权限，无需 chown。
+      # 想直接编辑可改成 ./data/magpie:/config，并先执行
+      #   mkdir -p data/magpie && sudo chown -R 65532:65532 data/magpie
+      - magpie-config:/config
+    command: ["web", "--addr", "0.0.0.0:3430", "--no-open"]
+    healthcheck:
+      test: ["CMD", "/magpie", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: magpie-login-nginx
+    restart: unless-stopped
+    networks: [front]
+    ports:
+      - "${HTTP_BIND:-127.0.0.1}:${HTTP_PORT:-8080}:80"
+      # HTTPS 时启用，并在模板中打开 443 server 块：
+      # - "${HTTPS_BIND:-127.0.0.1}:${HTTPS_PORT:-8443}:443"
+    environment:
+      # 只替换 ${MAGPIE_*}，nginx 自身的 $host、$request_uri 等变量保持原样。
+      NGINX_ENVSUBST_FILTER: "^MAGPIE_"
+      # 下面三项是容器内的固定位置，不暴露成 .env 配置。
+      MAGPIE_HTTP_PORT: "80"                        # 容器内监听 80，对外端口由 ports 控制
+      MAGPIE_UPSTREAM_HOST: "magpie"                # 同网络服务名；本机部署改成 127.0.0.1
+      MAGPIE_WEB_ROOT: "/usr/share/nginx/html"      # 本机部署改成项目里 dist/ 的路径
+      MAGPIE_WEB_KEY: "${MAGPIE_WEB_KEY:?请在 .env 设置 MAGPIE_WEB_KEY}"
+      # 客户端调 /v1 用的 Bearer key，同时也是转发给 magpie 的 gateway key。
+      # 容器模式下必须是管理页里启用的那把 sk-magpie-key-…，否则上游 401。
+      MAGPIE_API_KEY: "${MAGPIE_API_KEY:?请在 .env 设置 MAGPIE_API_KEY}"
+      MAGPIE_LOGIN_USER: "${MAGPIE_LOGIN_USER:-admin}"
+      MAGPIE_LOGIN_PASSWORD: "${MAGPIE_LOGIN_PASSWORD:?请在 .env 设置 MAGPIE_LOGIN_PASSWORD}"
+      MAGPIE_SESSION_TTL: "${MAGPIE_SESSION_TTL:-604800}"
+      MAGPIE_SESSION_RENEW: "${MAGPIE_SESSION_RENEW:-86400}"
+      # HTTPS 时填 "; Secure"，本机 HTTP 验证留空。
+      MAGPIE_COOKIE_SECURE_FLAG: "${MAGPIE_COOKIE_SECURE_FLAG:-}"
+    volumes:
+      # 原项目构建出的静态产物，只读挂载；运行时不需要 node 或构建工具。
+      - ./dist:/usr/share/nginx/html:ro
+      # nginx 镜像的入口脚本只渲染 /etc/nginx/templates/*.template，
+      # 所以把 nginx/nginx.conf 挂成 default.conf.template，渲染结果正好覆盖镜像默认站点。
+      - ./nginx/nginx.conf:/etc/nginx/templates/default.conf.template:ro
+    depends_on:
+      magpie:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/login"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  front:
+    driver: bridge
+
+volumes:
+  # docker compose down 不会删除，加 -v 才会。
+  magpie-config:
