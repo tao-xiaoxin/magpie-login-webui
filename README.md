@@ -22,7 +22,8 @@
 
 ## 它解决什么问题
 
-magpie 的 Web 管理页本身没有账号密码，只有 Web key，这个项目在管理页前面加一层登录：浏览器访问时先看到登录页，输对用户名密码才拿到会话 Cookie，Nginx 校验通过后再把请求转发给 magpie，并在转发时注入 Web key。key 始终留在服务端，浏览器拿不到。
+magpie 的 Web 管理页本身没有账号密码，只有 Web key，相比Web key 方式，我更喜欢账号密码登录的方式，更加简单好记，所以此项目应运而生。
+这个项目在管理页前面加一层登录：浏览器访问时先看到登录页，输对用户名密码才拿到会话 Cookie，Nginx 校验通过后再把请求转发给 magpie，并在转发时注入 Web key。key 始终留在服务端，浏览器拿不到。
 
 支持两种部署方式，共用同一份 Nginx 站点配置（`nginx/nginx.conf`）：本机安装（系统 nginx + 官方安装脚本装的 magpie）和 Docker（compose 起 magpie 与 nginx 两个容器）。
 
